@@ -63,8 +63,8 @@ disassemble: $(TARGET).lst
 disasm: disassemble    # Short alias for disassemble
 
 # Shows memory usage - critical for embedded systems with limited resources
-size:  $(TARGET).elf
-	$(AVRSIZE) -C --mcu=$(MCU) $(TARGET).elf
+size:  $(BUILD_DIR)/$(TARGET).elf
+	$(AVRSIZE) -C --mcu=$(MCU) $(BUILD_DIR)/$(TARGET).elf
 
 ## CLEANUP TARGETS
 clean:    # Remove build files but keep source code
@@ -129,8 +129,18 @@ fuses:     # DANGEROUS: Program fuse bytes - can brick your AVR if wrong!
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) \
 	           $(PROGRAMMER_ARGS) $(FUSE_STRING)
 	           
-show_fuses:    # Safe: Read and display current fuse settings
-	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -nv	
+read_fuses:    # Safe: Read and display current fuse settings
+	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
+
+write_fuses:
+	@echo "lfuse:"; \
+	read lfuse; \
+	echo "hfuse:"; \
+	read hfuse; \
+	echo "efuse:"; \
+	read efuse; \
+	avrdude -c usbasp -p atmega328p -U lfuse:w:$$lfuse:m -U hfuse:w:$$hfuse:m -U efuse:w:$$efuse:m
+
 
 ## PRESET FUSE CONFIGURATIONS
 set_default_fuses:  FUSE_STRING = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m -U efuse:w:$(EFUSE):m 
