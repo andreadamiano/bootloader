@@ -68,10 +68,7 @@ size:  $(TARGET).elf
 
 ## CLEANUP TARGETS
 clean:    # Remove build files but keep source code
-	rm -f $(TARGET).elf $(TARGET).hex $(TARGET).obj \
-	$(TARGET).o $(TARGET).d $(TARGET).eep $(TARGET).lst \
-	$(TARGET).lss $(TARGET).sym $(TARGET).map $(TARGET)~ \
-	$(TARGET).eeprom
+	rm -f $(BUILD_DIR)/*
 
 squeaky_clean:    # Remove ALL generated files (more thorough than clean)
 	rm -f *.elf *.hex *.obj *.o *.d *.eep *.lst *.lss *.sym *.map *~ *.eeprom
