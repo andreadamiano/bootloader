@@ -1,0 +1,25 @@
+# Ignore virtual environment
+venv/
+
+# Ignore compiled/binary files
+*.exe
+*.dll
+*.pyd
+
+# Ignore large media files
+*.gif
+*.mp4
+
+# Ignore CSV outputs
+solution.csv
+*.csv
+
+# Ignore temporary files
+*.log
+*.tmp
+
+# Ignore binary files 
+build/
+
+# Ignore .vscode
+.vscode/
