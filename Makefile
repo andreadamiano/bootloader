@@ -17,10 +17,9 @@ CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. -I$(LIBDIR)  # Defines F_CPU & BA
 CFLAGS = -Os -g -std=gnu99 -Wall   
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections 
-CFLAGS += -nostartfiles
 LDFLAGS = -Wl,-Map,$(BUILD_DIR)/$(TARGET).map    # Generate memory map file showing memory layout
 LDFLAGS += -Wl,--gc-sections        # Remove unused code sections (smaller final program) 
-# LDFLAGS += -T bootloader.id
+LDFLAGS += -Wl,--section-start=.text=0x3C00
 TARGET_ARCH = -mmcu=$(MCU)
 BUILD_DIR = build
 

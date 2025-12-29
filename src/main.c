@@ -9,22 +9,21 @@
 #include <stdlib.h>
 #include <avr/wdt.h>
 
-ISR(USART_RX_vect)
-{
-    uint8_t receivedByte = UDR0;  
-}
+// ISR(USART_RX_vect)
+// {
+//     uint8_t receivedByte = UDR0;  
+// }
  
 
 int main ()
 {
     MCUSR &= ~(1 << WDRF); 
     wdt_disable();          
-    DDRB |= 0; 
+    DDRB |= (1 << PB0); 
     while (1)
     {
-        PORTB = 1; 
+        PORTB ^= (1 << PB0); 
         _delay_ms(100); 
     }
     
 }
- 
