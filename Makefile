@@ -30,6 +30,7 @@ DEPNDENCIES = $(OBJECTS:.o=.d)
 $(BUILD_DIR)/%.o: $(LIBDIR)/%.c  Makefile
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(INC_LIST) -MMD -MP -c -o $@ $<
+# 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -MMD -MP -c -o $@ $<
 
 ## LINKING: Combines all object files into single ELF executable
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)

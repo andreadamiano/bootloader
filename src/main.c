@@ -3,7 +3,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <avr/wdt.h>
-#include "USART/USART.h"
+#include "USART.h"
 
 ISR(USART_RX_vect)
 {
@@ -21,7 +21,7 @@ int main ()
     wdt_disable(); 
 
     //init USART 
-    initUSART(); 
+    initUSART();
 
 
     MCUSR &= ~(1 << WDRF);         
