@@ -10,8 +10,10 @@ OBJDUMP = avr-objdump
 AVRSIZE = avr-size       
 AVRDUDE = avrdude        
 TARGET = main
-SOURCES=$(wildcard *.c $(LIBDIR)/*.c)
-OBJECTS=$(SOURCES:$(LIBDIR)/%.c=$(BUILD_DIR)/%.o)    # Convert .c filenames to .o filenames
+# SOURCES=$(wildcard *.c $(LIBDIR)/*.c)
+SOURCES := $(shell find . -name '*.c' ! -path "./$(BUILD_DIR)/*")
+INC_LIST = $(addprefix -I, $(sort $(dir $(shell find . -name '*.h'))))
+OBJECTS=$(SOURCES:./$(LIBDIR)/%.c=$(BUILD_DIR)/%.o)    # Convert .c filenames to .o filenames
 HEADERS=$(SOURCES:.c=.h)    # Find corresponding .h files for dependency tracking
 CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. -I$(LIBDIR)  # Defines F_CPU & BAUD macros, adds include paths
 CFLAGS = -Os -g -std=gnu99 -Wall   
@@ -22,10 +24,12 @@ LDFLAGS += -Wl,--gc-sections        # Remove unused code sections (smaller final
 LDFLAGS += -Wl,--section-start=.text=0x3C00
 TARGET_ARCH = -mmcu=$(MCU)
 BUILD_DIR = build
+DEPNDENCIES = $(OBJECTS:.o=.d) 
 
 # Object file creation
 $(BUILD_DIR)/%.o: $(LIBDIR)/%.c  Makefile
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(INC_LIST) -MMD -MP -c -o $@ $<
 
 ## LINKING: Combines all object files into single ELF executable
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)
@@ -34,6 +38,8 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)
 ## ELF TO HEX CONVERSION: Creates Intel HEX file for programming flash memory
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+
+-include $(DEPNDENCIES)
 
 ## EEPROM EXTRACTION: Creates separate file for EEPROM programming
 %.eeprom: %.elf
@@ -158,3 +164,6 @@ set_eeprom_save_fuse: fuses
 ## Allow EEPROM to be erased during programming (default behavior)
 clear_eeprom_save_fuse: FUSE_STRING = -U hfuse:w:$(HFUSE):m
 clear_eeprom_save_fuse: fuses
+
+test:
+	@(echo $(OBJECTS))
