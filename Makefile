@@ -115,9 +115,13 @@ squeaky_clean:    # Remove ALL generated files (more thorough than clean)
 clean_flash: $(TARGET).hex
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -e -U flash:w:$<
 	
+## MAIN PROGRAMMING TARGETS
+# flash: $(BUILD_DIR)/$(TARGET).hex     # Program the flash memory with your compiled code
+# 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U flash:w:$<
+
 
 # Program application (low addresses) first, then bootloader (high addresses)
-flash:
+flash: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) \
 	-U flash:w:$(BUILD_DIR)/$(APPLICATION_TARGET).hex:i \
 	-U flash:w:$(BUILD_DIR)/$(BOOTLOADER_TARGET).hex:i
