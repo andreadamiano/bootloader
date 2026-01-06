@@ -34,7 +34,7 @@ LDFLAGS += -Wl,--gc-sections        # Remove unused code sections (smaller final
 TARGET_ARCH = -mmcu=$(MCU)
 BUILD_DIR = build
 
-BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x3C00
+BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x7800
 BOOTLOADER_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(BOOTLOADER_TARGET).map # Generate memory map file showing memory layout
 APPLICATION_LDFLAGS = $(LDFLAGS)
 APPLICATION_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(APPLICATION_TARGET).map # Generate memory map file showing memory layout
@@ -58,6 +58,14 @@ $(BUILD_DIR)/$(BOOTLOADER_TARGET).elf: $(BOOTLOADER_OBJECTS)
 ## ELF TO HEX CONVERSION: Creates Intel HEX file for programming flash memory
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+
+# Merge both hex files into one for flashing
+$(BUILD_DIR)/combined.hex: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex
+	@echo "Creating combined hex file..."
+	@srec_cat $(BUILD_DIR)/$(APPLICATION_TARGET).hex -Intel \
+	          $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex -Intel \
+	          -o $(BUILD_DIR)/combined.hex -Intel
+	@echo "Combined hex file created: $(BUILD_DIR)/combined.hex"
 
 -include $(APPLICATION_DEPENDENCIES)
 -include $(BOOTLOADER_DEPENDENCIES)
@@ -107,15 +115,12 @@ squeaky_clean:    # Remove ALL generated files (more thorough than clean)
 clean_flash: $(TARGET).hex
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -e -U flash:w:$<
 	
-## MAIN PROGRAMMING TARGETS
-# flash: $(BUILD_DIR)/$(TARGET).hex     # Program the flash memory with your compiled code
-# 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U flash:w:$<
-
 
 # Program application (low addresses) first, then bootloader (high addresses)
-flash: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex
-	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U flash:w:$(BUILD_DIR)/$(APPLICATION_TARGET).hex:i
-	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -U flash:w:$(BUILD_DIR)/$(BOOTLOADER_TARGET).hex:i
+flash:
+	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) \
+	-U flash:w:$(BUILD_DIR)/$(APPLICATION_TARGET).hex:i \
+	-U flash:w:$(BUILD_DIR)/$(BOOTLOADER_TARGET).hex:i
 
 program: flash    # Alias for flash - same functionality
 
