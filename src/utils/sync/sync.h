@@ -1,5 +1,5 @@
 #ifndef SYNC_H
-#define SYNC_h
+#define SYNC_H
 
 #include <stdlib.h>
 #include <stdint.h>
