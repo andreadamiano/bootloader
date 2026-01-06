@@ -15,29 +15,6 @@ void process_sup_frame(const sup_frame_t* frame)
 
 }
 
-// static void  __attribute__((noreturn)) jump_to_application()
-// {
-
-//     // Prefer a clean hardware reset so the application runs through
-//     // its normal startup (crt0) rather than trying to emulate reset
-//     // by jumping. This requires the BOOTRST fuse to be cleared
-//     // (so reset goes to application). Trigger a short WDT reset.
-
-//     wdt_disable();
-//     cli();
-//     UCSR0B = 0; // Disable UART
-
-//     //move interrupt vector pointer back to the application section
-//     // MCUCR = _BV(IVCE); // Enable interrupt vector change
-//     // MCUCR = 0;  
-
-//     // Enable WDT for shortest timeout, then wait for reset
-//     wdt_enable(WDTO_15MS);
-//     for (;;) { /* wait for WDT reset */ }
-
-//     __builtin_unreachable();
-// }
-
 static void __attribute__((noreturn)) jump_to_application(void)
 {
     // Disable watchdog timer
