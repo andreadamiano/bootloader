@@ -1,7 +1,10 @@
 MCU   = atmega328p        
 F_CPU = 16000000UL        
-BAUD  = 9600UL          
-LIBDIR = src
+BAUD  = 9600UL     
+LIBDIR = src     
+BOOTLOADER_DIR = src/bootloader
+APPLICATION_DIR = src/application
+UTILS_DIR = src/utils
 PROGRAMMER_TYPE = usbasp    
 PROGRAMMER_ARGS = 	
 CC = avr-gcc             
@@ -10,37 +13,55 @@ OBJDUMP = avr-objdump
 AVRSIZE = avr-size       
 AVRDUDE = avrdude        
 TARGET = main
-# SOURCES=$(wildcard *.c $(LIBDIR)/*.c)
-SOURCES := $(shell find . -name '*.c' ! -path "./$(BUILD_DIR)/*")
-INC_LIST = $(addprefix -I, $(sort $(dir $(shell find . -name '*.h'))))
-OBJECTS=$(SOURCES:./$(LIBDIR)/%.c=$(BUILD_DIR)/%.o)    # Convert .c filenames to .o filenames
-HEADERS=$(SOURCES:.c=.h)    # Find corresponding .h files for dependency tracking
+APPLICATION_TARGET = main_app
+BOOTLOADER_TARGET = main_boot
+
+
+BOOTLOADER_SOURCES := $(shell find $(UTILS_DIR) -name '*.c') $(shell find $(BOOTLOADER_DIR) -name '*.c')
+APPLICATION_SOURCES := $(shell find $(APPLICATION_DIR) -name '*.c') $(shell find $(UTILS_DIR) -name '*.c')
+INC_LIST = $(addprefix -I, $(sort $(dir $(shell find $(UTILS_DIR) -name '*.h'))))
+BOOTLOADER_OBJECTS=$(BOOTLOADER_SOURCES:src/%.c=$(BUILD_DIR)/%.o)   # Convert .c filenames to .o filenames
+APPLICATION_OBJECTS=$(APPLICATION_SOURCES:src/%.c=$(BUILD_DIR)/%.o)    # Convert .c filenames to .o filenames
+APPLICATION_DEPENDENCIES = $(APPLICATION_OBJECTS:.o=.d) 
+BOOTLOADER_DEPENDENCIES = $(BOOTLOADER_OBJECTS:.o=.d) 
+
+
 CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. -I$(LIBDIR)  # Defines F_CPU & BAUD macros, adds include paths
 CFLAGS = -Os -g -std=gnu99 -Wall   
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections 
-LDFLAGS = -Wl,-Map,$(BUILD_DIR)/$(TARGET).map    # Generate memory map file showing memory layout
 LDFLAGS += -Wl,--gc-sections        # Remove unused code sections (smaller final program) 
-LDFLAGS += -Wl,--section-start=.text=0x3C00
 TARGET_ARCH = -mmcu=$(MCU)
 BUILD_DIR = build
-DEPNDENCIES = $(OBJECTS:.o=.d) 
+
+BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x3C00
+BOOTLOADER_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(BOOTLOADER_TARGET).map # Generate memory map file showing memory layout
+APPLICATION_LDFLAGS = $(LDFLAGS)
+APPLICATION_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(APPLICATION_TARGET).map # Generate memory map file showing memory layout
+
+
+application: $(BUILD_DIR)/$(APPLICATION_TARGET).hex 
+bootloader: $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex 
 
 # Object file creation
-$(BUILD_DIR)/%.o: $(LIBDIR)/%.c  Makefile
+$(BUILD_DIR)/%.o: src/%.c Makefile
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(INC_LIST) -MMD -MP -c -o $@ $<
-# 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -MMD -MP -c -o $@ $<
 
 ## LINKING: Combines all object files into single ELF executable
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS)
-	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@
+$(BUILD_DIR)/$(APPLICATION_TARGET).elf: $(APPLICATION_OBJECTS)
+	$(CC) $(APPLICATION_LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@
+
+$(BUILD_DIR)/$(BOOTLOADER_TARGET).elf: $(BOOTLOADER_OBJECTS)
+	$(CC) $(BOOTLOADER_LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@
 
 ## ELF TO HEX CONVERSION: Creates Intel HEX file for programming flash memory
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
--include $(DEPNDENCIES)
+-include $(APPLICATION_DEPENDENCIES)
+-include $(BOOTLOADER_DEPENDENCIES)
+
 
 ## EEPROM EXTRACTION: Creates separate file for EEPROM programming
 %.eeprom: %.elf
@@ -53,7 +74,7 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 ## PHONY TARGETS: These targets don't create files with the same names
 .PHONY: all disassemble disasm eeprom size clean squeaky_clean flash fuses
 
-all: $(BUILD_DIR)/$(TARGET).hex    # DEFAULT TARGET: Build the HEX file ready for programming
+all: application bootloader
 
 ## DEVELOPMENT/DEBUGGING TARGETS
 debug:    # Shows current configuration - useful for troubleshooting
@@ -74,7 +95,7 @@ size:  $(BUILD_DIR)/$(TARGET).elf
 
 ## CLEANUP TARGETS
 clean:    # Remove build files but keep source code
-	rm -f $(BUILD_DIR)/*
+	rm -rf $(BUILD_DIR)/*
 
 squeaky_clean:    # Remove ALL generated files (more thorough than clean)
 	rm -f *.elf *.hex *.obj *.o *.d *.eep *.lst *.lss *.sym *.map *~ *.eeprom
@@ -165,6 +186,3 @@ set_eeprom_save_fuse: fuses
 ## Allow EEPROM to be erased during programming (default behavior)
 clear_eeprom_save_fuse: FUSE_STRING = -U hfuse:w:$(HFUSE):m
 clear_eeprom_save_fuse: fuses
-
-test:
-	@(echo $(OBJECTS))
