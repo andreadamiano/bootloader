@@ -40,7 +40,9 @@ static void __attribute__((noreturn)) jump_to_application(void)
 
 int main ()
 {
-     
+    //disable watch dog timer 
+    wdt_disable(); 
+    
     // debug (enter bootloader section)
     DDRB = 1; 
     for (int i = 0; i < 4; ++i)
@@ -48,10 +50,6 @@ int main ()
         PORTB ^= 1; 
         _delay_ms(1000); 
     }
-
-
-    //disable watch dog timer 
-    wdt_disable(); 
 
 
     if (flag == FW_UPDATE_REQUEST)

@@ -6,6 +6,10 @@
 #include "utils/USART/USART.h"
 #include <stdio.h>
 #include "utils/sync/packet.h"
+#include <avr/wdt.h>
+
+/* persistent reset counter in .noinit to detect repeated resets */
+volatile uint8_t reset_count __attribute__((section(".noinit")));
 
 ISR(USART_RX_vect)
 {
@@ -16,10 +20,6 @@ ISR(USART_RX_vect)
     sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
     if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
     {
-        PORTB ^= 1; 
-        _delay_ms(2000); 
-
-
         process_sup_frame(&current_state->frame); 
     }
 }
@@ -27,6 +27,8 @@ ISR(USART_RX_vect)
 
 int main()
 {
+    wdt_disable(); 
+    
     //initialize usart and sup protocol 
     sup_rx_frame_state_t current_state; 
     initUSART();
