@@ -239,3 +239,10 @@ void sup_send_data(const uint8_t* payload, const uint8_t payload_size)
 {
     sup_send_frame(SUP_ID_DATA, payload, payload_size);
 }
+
+
+void sup_send_byte(uint8_t data) 
+{
+    loop_until_bit_is_set(UCSR0A, UDRE0);
+    UDR0 = data; /* send data */
+}

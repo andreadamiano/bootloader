@@ -10,10 +10,6 @@
 #define APP_START_ADDR (0x0000) 
 extern volatile uint32_t flag; 
 
-void process_sup_frame(const sup_frame_t* frame)
-{
-
-}
 
 static void __attribute__((noreturn)) jump_to_application(void)
 {
