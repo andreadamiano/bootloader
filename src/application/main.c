@@ -16,6 +16,10 @@ ISR(USART_RX_vect)
     sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
     if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
     {
+        PORTB ^= 1; 
+        _delay_ms(2000); 
+
+
         process_sup_frame(&current_state->frame); 
     }
 }
@@ -28,6 +32,8 @@ int main()
     initUSART();
     sup_init(&current_state); 
 
+    //enable interrupts
+    sei(); 
 
     DDRB = 1;  
 

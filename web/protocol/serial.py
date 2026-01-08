@@ -1,6 +1,13 @@
-from protocol.sup import *
+from web.protocol.sup import *
 import serial
 from web.core.settings import settings
+from enum import Enum
+
+class BootPacket(Enum):
+    BOOT_REQUEST_UPDATE = 0
+    BOOT_DATA = 1
+    BOOT_MAX = 2
+
 
 ser = serial.Serial(
     port=settings.serial.SERIAL_PORT,
@@ -10,13 +17,9 @@ ser = serial.Serial(
     bytesize=serial.SEVENBITS
 )
 
-
-
-def send_hello():
-    ser.write(b"hello")
-
 def send_firmware_update():
-    pass 
+    frame = create_sup_frame(BootPacket.BOOT_REQUEST_UPDATE.value)
+    ser.write(frame)
 
 def send_sup_frame():
     pass

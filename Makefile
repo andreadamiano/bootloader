@@ -201,3 +201,18 @@ set_eeprom_save_fuse: fuses
 ## Allow EEPROM to be erased during programming (default behavior)
 clear_eeprom_save_fuse: FUSE_STRING = -U hfuse:w:$(HFUSE):m
 clear_eeprom_save_fuse: fuses
+
+
+reset:
+	echo "send r" | avrdude -p m328p -c usbasp -t
+
+
+connect_h05:
+	sudo echo "Getting sudo access..."
+	sudo rfcomm connect /dev/rfcomm0 98:D3:31:F7:15:AA
+
+bind_h05:
+	sudo rfcomm bind /dev/rfcomm0 98:D3:31:F7:15:AA
+
+release_h05:
+	sudo rfcomm release /dev/rfcomm0

@@ -1,4 +1,4 @@
-from web.protocol.serial import send_hello
+from web.protocol.serial import send_firmware_update
 
 
-send_hello()
+send_firmware_update()
