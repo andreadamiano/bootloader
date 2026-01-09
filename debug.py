@@ -1,4 +1,3 @@
 from web.protocol.serial import send_firmware_update, listen
 
-
-send_firmware_update()
+listen()

@@ -7,9 +7,10 @@
 #include <stdio.h>
 #include "utils/sync/packet.h"
 #include <avr/wdt.h>
+#include <util/atomic.h>
+#include <string.h>
 
-/* persistent reset counter in .noinit to detect repeated resets */
-volatile uint8_t reset_count __attribute__((section(".noinit")));
+volatile bool receiveNewFrame = false;  
 
 ISR(USART_RX_vect)
 {
@@ -20,8 +21,43 @@ ISR(USART_RX_vect)
     sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
     if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
     {
-        process_sup_frame(&current_state->frame); 
+        receiveNewFrame = true; 
     }
+}
+
+// void copySupFrame(sup_frame_t* in, sup_frame_t* out)
+// {
+//     uint8_t sreg = SREG;  
+//     cli();
+
+//     out->id = in->id; 
+//     out->payload_size = in->payload_size; 
+
+//     if (in->payload_size >0 && in->payload_size < SUP_MAX_PAYLOAD_SIZE)
+//         memcpy(out, in, in->payload_size); 
+
+
+//     SREG = sreg; 
+// }
+
+void copySupFrame(sup_frame_t* in, sup_frame_t* out)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        /* copy header fields */
+        out->id = in->id;
+        out->payload_size = in->payload_size;
+
+        /* copy payload safely */
+        if (in->payload_size > 0 && in->payload_size <= SUP_MAX_PAYLOAD_SIZE) {
+            memcpy(out->payload, in->payload, in->payload_size);
+        }
+    }
+}
+
+void blinkLed()
+{
+    PORTB ^= 1; 
+    _delay_ms(100); 
 }
 
 
@@ -41,8 +77,14 @@ int main()
 
     while (true)
     {
-        PORTB ^= 1; 
-        _delay_ms(100); 
+        if (receiveNewFrame)
+        {
+            receiveNewFrame = false; 
+            sup_frame_t copy; 
+            copySupFrame(&current_state.frame, &copy); 
+            process_sup_frame(&copy);
+        }
+        blinkLed(); 
     }
     
 }

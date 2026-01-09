@@ -40,11 +40,28 @@ static void __attribute__((noreturn)) jump_to_application(void)
 
 int main ()
 {
-    //disable watch dog timer 
+    /* Check reset reason early so we can distinguish a watchdog reset */
+    uint8_t mcusr_val = MCUSR;
+    MCUSR = 0; /* clear reset flags */
+
+    if (mcusr_val & _BV(WDRF))
+    {
+        /* Indicate watchdog reset: three quick blinks */
+        DDRB |= 1;
+        for (int i = 0; i < 3; ++i)
+        {
+            PORTB ^= 1;
+            _delay_ms(150);
+            PORTB ^= 1;
+            _delay_ms(150);
+        }
+    }
+
+    /* disable watch dog timer early in startup */
     wdt_disable(); 
-    
-    // debug (enter bootloader section)
-    DDRB = 1; 
+
+    /* debug (enter bootloader section) - slow banner blinks */
+    DDRB |= 1; 
     for (int i = 0; i < 4; ++i)
     {
         PORTB ^= 1; 

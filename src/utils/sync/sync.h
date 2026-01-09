@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <avr/wdt.h>
+#include <util/delay.h>
 
 
 #define FW_UPDATE_REQUEST (0xDEADBEEFUL)
