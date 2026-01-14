@@ -28,6 +28,10 @@ def send_sup_frame():
     pass
 
 def listen():
-    data = ser.read(10)
-    print(f"Received: {data}")
+    if ser.is_open:
+        print("seriall port is open, listening...")
+    while True:
+        data = ser.readline()
+        if data:
+            print(f"Received: {data}")
 

@@ -40,27 +40,24 @@ static void __attribute__((noreturn)) jump_to_application(void)
 
 int main ()
 {
-    /* Check reset reason early so we can distinguish a watchdog reset */
     uint8_t mcusr_val = MCUSR;
-    MCUSR = 0; /* clear reset flags */
+    MCUSR = 0; //the MCU status register must be cleared otherwise the next function will fail
 
-    if (mcusr_val & _BV(WDRF))
-    {
-        /* Indicate watchdog reset: three quick blinks */
-        DDRB |= 1;
-        for (int i = 0; i < 3; ++i)
-        {
-            PORTB ^= 1;
-            _delay_ms(150);
-            PORTB ^= 1;
-            _delay_ms(150);
-        }
-    }
-
-    /* disable watch dog timer early in startup */
+    //disable watch dog timer 
     wdt_disable(); 
+    
+    // Initialize USART for printing
+    initUSART();
 
-    /* debug (enter bootloader section) - slow banner blinks */
+    if (mcusr_val & _BV(WDRF)) {
+        char debug[30] = "WDT reset detected\n";
+        printString(debug);
+    }
+    
+    char string[30] = "inside bootloader\n"; 
+    printString(string); 
+
+    //slow blink to signal entering the bootloader section
     DDRB |= 1; 
     for (int i = 0; i < 4; ++i)
     {

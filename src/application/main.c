@@ -14,7 +14,7 @@ volatile bool receiveNewFrame = false;
 
 ISR(USART_RX_vect)
 {
-    const uint8_t byte = UDR0; // get received byte 
+    const uint8_t byte = UDR0; // get received byte via USART
     sup_handle_rx_byte(byte); 
 
     //check if a complete sup frame was received 
@@ -69,7 +69,10 @@ int main()
     sup_rx_frame_state_t current_state; 
     initUSART();
     sup_init(&current_state); 
-
+    
+    char string[30] = "inside application\n"; 
+    printString(string); 
+    
     //enable interrupts
     sei(); 
 
