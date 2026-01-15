@@ -34,9 +34,12 @@ LDFLAGS += -Wl,--gc-sections        # Remove unused code sections (smaller final
 TARGET_ARCH = -mmcu=$(MCU)
 BUILD_DIR = build
 
-BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x7800
+# BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x7800
+BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=7000
+BOOTLOADER_LDFLAGS += -Wl,--section-start=.noinit=0x800200  #after the first 200 hex (since i dont't increase the heap is safe, if i would it would override this section
 BOOTLOADER_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(BOOTLOADER_TARGET).map # Generate memory map file showing memory layout
 APPLICATION_LDFLAGS = $(LDFLAGS)
+APPLICATION_LDFLAGS += -Wl,--section-start=.noinit=0x800200
 APPLICATION_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(APPLICATION_TARGET).map # Generate memory map file showing memory layout
 
 
@@ -84,12 +87,12 @@ $(BUILD_DIR)/combined.hex: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$
 
 all: application bootloader
 
-## DEVELOPMENT/DEBUGGING TARGETS
-debug:    # Shows current configuration - useful for troubleshooting
-	@echo
-	@echo "Source files:"   $(SOURCES)
-	@echo "MCU, F_CPU, BAUD:"  $(MCU), $(F_CPU), $(BAUD)
-	@echo	
+# ## DEVELOPMENT/DEBUGGING TARGETS
+# debug:    # Shows current configuration - useful for troubleshooting
+# 	@echo
+# 	@echo "Source files:"   $(SOURCES)
+# 	@echo "MCU, F_CPU, BAUD:"  $(MCU), $(F_CPU), $(BAUD)
+# 	@echo	
 
 # Creates assembly listing - useful for debugging timing-critical code
 # and verifying the compiler does what you expect
@@ -216,3 +219,6 @@ bind_h05:
 
 release_h05:
 	sudo rfcomm release /dev/rfcomm0
+
+debug:
+	python3 debug.py

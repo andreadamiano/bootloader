@@ -6,6 +6,8 @@
 #include "utils/USART/USART.h"
 #include "utils/protocol/sup.h"
 #include "utils/sync/sync.h"
+#include <string.h>
+#include <stdio.h>
 
 #define APP_START_ADDR (0x0000) 
 extern volatile uint32_t flag; 
@@ -41,12 +43,12 @@ static void __attribute__((noreturn)) jump_to_application(void)
 int main ()
 {
     uint8_t mcusr_val = MCUSR;
-    MCUSR = 0; //the MCU status register must be cleared otherwise the next function will fail
+    MCUSR = 0; //the MCU status register must be cleared otherwise the wdt cannot be disabled 
 
     //disable watch dog timer 
     wdt_disable(); 
     
-    // Initialize USART for printing
+    // Initialize USART for send debug messages 
     initUSART();
 
     if (mcusr_val & _BV(WDRF)) {
@@ -65,13 +67,20 @@ int main ()
         _delay_ms(1000); 
     }
 
+    char debug[50];
+    sprintf(debug, "Flag value: 0x%08lX\n", flag);
+    printString(debug);
+
+
 
     if (flag == FW_UPDATE_REQUEST)
     {
         //init USART 
         sup_rx_frame_state_t current_state; 
-        initUSART();
         sup_init(&current_state); 
+        
+        strcpy(string, "updating firmware"); 
+        printString(string); 
 
 
         //start polling USART untill the firmware is updated 

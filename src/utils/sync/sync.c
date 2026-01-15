@@ -1,6 +1,7 @@
 #include "sync.h"
 #include <avr/interrupt.h>
 #include "../USART/USART.h"
+#include <stdio.h>
 
 volatile uint32_t flag __attribute__((section(".noinit")));
 
@@ -13,11 +14,16 @@ void set_firmware_update_flag(void)
 void switch_to_bootloader()
 {
     cli(); //disable interrupt 
-    // set_firmware_update_flag(); 
+    set_firmware_update_flag(); 
 
-    char debug[30] = "received boot signal\n";
+    char debug[30];
+    sprintf(debug, "Flag set to: 0x%08lX\n", flag);
+    printString(debug);
+
+    // char debug2[30] = "received boot signal\n";
+    // printString(debug2); 
+
     _delay_ms(1000); 
-    printString(debug); 
     wdt_enable(WDTO_250MS);
     while (1)
     {
