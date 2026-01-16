@@ -14,8 +14,7 @@ ser = serial.Serial(
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
-    # timeout=0.1,
-    timeout=None
+    timeout=settings.serial.TIMEOUT,
 )
 
 class SerialRepository:
@@ -35,23 +34,23 @@ class SerialRepository:
     def send_frame_and_wait_ack(self, frame: bytes) -> bool:
         for tries in range(settings.serial.MAX_RETRIES):
             ser.write(frame) 
-            self.read_sup_frame()
+            if not self.read_sup_frame(time.time() + 10): #wait for 10 seconds the ack message
+                logger.error("Did not received the ack message before timeout")
 
-
-    def send_firmware_update():
+    def send_firmware_update(self):
         # Use the defined SUP firmware update command ID to match the device protocol
         frame = create_frame(SupId.CMD_FW_UPDATE)
-        ser.write(frame)
+        self.send_frame_and_wait_ack(frame)
 
         
 
         frame = create_frame(SupId.DATA, b"128")  #firware size
         ser.write(frame)
 
-    def send_sup_frame():
+    def send_sup_frame(self):
         pass
 
-    def listen():
+    def listen(self):
         if ser.is_open:
             print("seriall port is open, listening...")
         while True:

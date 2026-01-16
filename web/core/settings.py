@@ -5,6 +5,7 @@ class SerialSettings(BaseSettings):
     SERIAL_PORT: str = Field(alias="SERIAL_PORT")
     BAUD_RATE: int = Field(alias="BAUD_RATE")
     MAX_RETRIES: int = Field(alias="MAX_RETRIES")
+    TIMEOUT: int = Field(alias="TIMEOUT")
 
     model_config = SettingsConfigDict(
         env_file=".env"

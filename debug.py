@@ -1,3 +1,4 @@
-from web.serial.serial_repository import send_firmware_update, listen
+from web.serial.serial_repository import SerialRepository
 
-listen()
+repository = SerialRepository()
+repository.listen()
