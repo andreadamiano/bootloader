@@ -5,16 +5,16 @@
 
 volatile uint32_t flag __attribute__((section(".noinit")));
 
-void set_firmware_update_flag(void)
+void setFirmwareUpdateFlag(void)
 {
     flag = FW_UPDATE_REQUEST;
 }
 
 
-void switch_to_bootloader()
+void switchToBootloader()
 {
     cli(); //disable interrupt 
-    set_firmware_update_flag(); 
+    setFirmwareUpdateFlag(); 
 
     char debug[30];
     sprintf(debug, "Flag set to: 0x%08lX\n", flag);

@@ -13,7 +13,7 @@ extern volatile uint32_t flag;
 
 
 void set_firmware_update_flag(); 
-void switch_to_bootloader(); 
+void switchToBootloader(); 
 
 #endif
 

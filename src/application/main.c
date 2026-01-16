@@ -71,7 +71,7 @@ int main()
             receiveNewFrame = false; 
             sup_frame_t copy; 
             copySupFrame(&current_state.frame, &copy); 
-            process_sup_frame(&copy);
+            processSupFrame(&copy);
         }
         blinkLed(); 
     }

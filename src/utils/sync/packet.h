@@ -10,6 +10,6 @@ typedef enum boot_packet
     BOOT_MAX
 }boot_packet;
 
-void process_sup_frame(sup_frame_t* frame);
+void processSupFrame(sup_frame_t* frame);
 
 #endif
