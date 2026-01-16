@@ -14,6 +14,7 @@ void setFirmwareUpdateFlag(void)
 void switchToBootloader()
 {
     cli(); //disable interrupt 
+
     setFirmwareUpdateFlag(); 
 
     char debug[30];

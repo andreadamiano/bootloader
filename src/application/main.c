@@ -34,7 +34,7 @@ void copySupFrame(sup_frame_t* in, sup_frame_t* out)
     out->payload_size = in->payload_size; 
 
     if (in->payload_size >0 && in->payload_size < SUP_MAX_PAYLOAD_SIZE)
-        memcpy(out, in, in->payload_size); 
+        memcpy(out->payload, in->payload, in->payload_size); 
 
 
     SREG = sreg; 
@@ -45,6 +45,7 @@ void processSupFrame(sup_frame_t* frame)
     switch (frame->id)
     {
         case SUP_ID_CMD_FW_UPDATE:
+            sup_send_ack(frame->id, NULL); 
             switchToBootloader(); 
             break;
         

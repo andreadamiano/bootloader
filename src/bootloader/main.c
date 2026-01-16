@@ -37,6 +37,40 @@ static void __attribute__((noreturn)) jump_to_application(void)
     __builtin_unreachable();
 }
 
+void processSupFrame(sup_frame_t* frame)
+{
+    if(frame->id != SUP_ID_DATA)
+    {
+        sup_send_nack(frame->id,  (const uint8_t*)&fw_state); //send the state back so the sender can implement some error handling logic 
+        return; 
+    }
+
+    switch (fw_state)
+    {
+        case FW_STATE_IDLE:
+        case FW_STATE_FINISHED:
+        case FW_STATE_ERROR:
+            // Not expecting data in these states
+            sup_send_nack(frame->id, (const uint8_t*)&fw_state);
+            break;
+
+        case FW_STATE_READY:
+            //waiting for the firware size 
+            if (frame->payload_size == 0)
+            {
+                fw_state = FW_STATE_ERROR; 
+            }
+            char string [30]; 
+            sprintf(string, "%u", frame->payload_size); 
+            printString(string); 
+
+            break;
+        
+        default:
+            break;
+    }
+}
+
 int main ()
 {
     uint8_t mcusr_val = MCUSR;
@@ -73,6 +107,7 @@ int main ()
     {
         sup_rx_frame_state_t current_state; 
         sup_init(&current_state); 
+        fw_state = FW_STATE_READY; 
         
         strcpy(string, "updating firmware"); 
         printString(string); 
@@ -88,6 +123,15 @@ int main ()
             if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
             {
                 processSupFrame(&current_state->frame); 
+
+                if (fw_state == FW_STATE_FINISHED)
+                    break;
+
+                if (fw_state == FW_STATE_ERROR)
+                {
+                    strcpy(string, "error fw retrieve"); //debug message
+                    printString(string); 
+                }
             }
         }
     
@@ -96,17 +140,4 @@ int main ()
     jump_to_application(); 
     return 0; 
         
-}
-
-void processSupFrame(sup_frame_t* frame)
-{
-    switch (frame->id)
-    {
-        case SUP_ID_CMD_FW_UPDATE:
-            switchToBootloader(); 
-            break;
-        
-        default:
-            break;
-    }
 }
