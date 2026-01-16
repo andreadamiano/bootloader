@@ -14,7 +14,7 @@ volatile bool receiveNewFrame = false;
 
 ISR(USART_RX_vect)
 {
-    const uint8_t byte = UDR0; // get received byte via USART
+    const uint8_t byte = UDR0; // save received byte via USART
     sup_handle_rx_byte(byte); 
 
     //check if a complete sup frame was received 
@@ -25,33 +25,19 @@ ISR(USART_RX_vect)
     }
 }
 
-// void copySupFrame(sup_frame_t* in, sup_frame_t* out)
-// {
-//     uint8_t sreg = SREG;  
-//     cli();
-
-//     out->id = in->id; 
-//     out->payload_size = in->payload_size; 
-
-//     if (in->payload_size >0 && in->payload_size < SUP_MAX_PAYLOAD_SIZE)
-//         memcpy(out, in, in->payload_size); 
-
-
-//     SREG = sreg; 
-// }
-
 void copySupFrame(sup_frame_t* in, sup_frame_t* out)
 {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        /* copy header fields */
-        out->id = in->id;
-        out->payload_size = in->payload_size;
+    uint8_t sreg = SREG;  
+    cli(); //disable all interrupts
 
-        /* copy payload safely */
-        if (in->payload_size > 0 && in->payload_size <= SUP_MAX_PAYLOAD_SIZE) {
-            memcpy(out->payload, in->payload, in->payload_size);
-        }
-    }
+    out->id = in->id; 
+    out->payload_size = in->payload_size; 
+
+    if (in->payload_size >0 && in->payload_size < SUP_MAX_PAYLOAD_SIZE)
+        memcpy(out, in, in->payload_size); 
+
+
+    SREG = sreg; 
 }
 
 void blinkLed()

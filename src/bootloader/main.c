@@ -15,28 +15,24 @@ extern volatile uint32_t flag;
 
 static void __attribute__((noreturn)) jump_to_application(void)
 {
-    // Disable watchdog timer
     wdt_disable();
 
-    // Move interrupt vectors back to application section
-    MCUCR = _BV(IVCE); // Enable interrupt vector change
-    MCUCR = 0;         // Move vectors to application section (0x0000)
+    //move interrupt vectors back to application section
+    MCUCR = _BV(IVCE); //enable interrupt vector change
+    MCUCR = 0;         //move vectors to application section
 
-    // Disable all interrupts
     cli();
 
-    // Clean up UART (optional - application will reinitialize)
-    UCSR0B = 0; // Disable UART
+   //disable UART
+    UCSR0B = 0;
 
-    // Jump to application start
-    // Clear r1 register (expected to be zero by C runtime)
-    __asm__ __volatile__("clr r1\n\t"               // Clear register r1 (zero register)
-                         "jmp %0"                   // Jump to application
-                         :                          // No output operands
-                         : "i"(APP_START_ADDR) // Input: application start address
+    //inline assembly
+    __asm__ __volatile__("clr r1\n\t"               //clear register 1
+                         "jmp %0"                   //jump to application (%0 is a placeholder)
+                         :                          //output operands
+                         : "i"(APP_START_ADDR) //input operands
     );
 
-    // Should never reach here
     __builtin_unreachable();
 }
 
@@ -45,10 +41,9 @@ int main ()
     uint8_t mcusr_val = MCUSR;
     MCUSR = 0; //the MCU status register must be cleared otherwise the wdt cannot be disabled 
 
-    //disable watch dog timer 
     wdt_disable(); 
     
-    // Initialize USART for send debug messages 
+    //initialize USART to send debug messages 
     initUSART();
 
     if (mcusr_val & _BV(WDRF)) {
@@ -75,7 +70,6 @@ int main ()
 
     if (flag == FW_UPDATE_REQUEST)
     {
-        //init USART 
         sup_rx_frame_state_t current_state; 
         sup_init(&current_state); 
         
