@@ -11,6 +11,7 @@
 
 #define APP_START_ADDR (0x0000) 
 extern volatile uint32_t flag; 
+fw_parsing_state fw_state = FW_STATE_IDLE;
 
 
 static void __attribute__((noreturn)) jump_to_application(void)
@@ -78,14 +79,34 @@ int main ()
 
 
         //start polling USART untill the firmware is updated 
-        while (current_state.parsing_result != SUP_RESULT_SUCCESS)
-        {   
+        while (1)
+        {
             uint8_t byte = receiveByte(); 
             sup_handle_rx_byte(byte); 
+
+            sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
+            if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
+            {
+                processSupFrame(&current_state->frame); 
+            }
         }
+    
         
     }
     jump_to_application(); 
     return 0; 
         
+}
+
+void processSupFrame(sup_frame_t* frame)
+{
+    switch (frame->id)
+    {
+        case SUP_ID_CMD_FW_UPDATE:
+            switchToBootloader(); 
+            break;
+        
+        default:
+            break;
+    }
 }

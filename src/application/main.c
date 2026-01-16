@@ -4,8 +4,8 @@
 #include <stdbool.h> 
 #include "utils/protocol/sup.h"
 #include "utils/USART/USART.h"
+#include "utils/sync/sync.h"
 #include <stdio.h>
-#include "utils/sync/packet.h"
 #include <avr/wdt.h>
 #include <util/atomic.h>
 #include <string.h>
@@ -39,6 +39,20 @@ void copySupFrame(sup_frame_t* in, sup_frame_t* out)
 
     SREG = sreg; 
 }
+
+void processSupFrame(sup_frame_t* frame)
+{
+    switch (frame->id)
+    {
+        case SUP_ID_CMD_FW_UPDATE:
+            switchToBootloader(); 
+            break;
+        
+        default:
+            break;
+    }
+}
+
 
 void blinkLed()
 {

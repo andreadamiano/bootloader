@@ -3,11 +3,6 @@ import serial
 from web.core.settings import settings
 from enum import Enum
 
-class BootPacket(Enum):
-    BOOT_REQUEST_UPDATE = 0x00
-    BOOT_DATA = 0x01
-    BOOT_MAX = 0x02
-
 
 ser = serial.Serial(
     port=settings.serial.SERIAL_PORT,
@@ -21,7 +16,7 @@ ser = serial.Serial(
 
 def send_firmware_update():
     # Use the defined SUP firmware update command ID to match the device protocol
-    frame = create_sup_frame(BootPacket.BOOT_REQUEST_UPDATE.value)
+    frame = create_sup_frame(SUP_ID_CMD_FW_UPDATE)
     ser.write(frame)
 
 def send_sup_frame():
