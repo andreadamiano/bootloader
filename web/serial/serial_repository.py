@@ -36,12 +36,15 @@ class SerialRepository:
             return None
 
     def send_frame_and_wait_ack(self, frame: bytes) -> bool:
-        for tries in range(settings.serial.MAX_RETRIES):
+        for _ in range(settings.serial.MAX_RETRIES):
             ser.write(frame) 
             sup_frame = self.read_sup_frame(time.time() + 10) #wait for 10 seconds the ack message
             if sup_frame and sup_frame.frame_id == SupId.ACK:
                 logger.info("Received ack message")
                 return True
+            elif sup_frame and sup_frame.frame_id == SupId.NACK:
+                logger.error("Receive nack message")
+                return False
             
             logger.error("Did not received the ack message before timeout")
         
@@ -49,13 +52,15 @@ class SerialRepository:
         return False
 
     def send_firmware_update(self):
-        # Use the defined SUP firmware update command ID to match the device protocol
+        #send update signal
         frame = create_frame(SupId.CMD_FW_UPDATE)
         self.send_frame_and_wait_ack(frame)
 
         #send firware size
-        frame = create_frame(SupId.DATA, b"128")  
-        ser.write(frame)
+        firware_size = 128
+        frame = create_frame(SupId.DATA, firware_size.to_bytes(2, "little"))  
+        self.send_frame_and_wait_ack(frame)
+        self.listen()
 
     def send_sup_frame(self):
         pass

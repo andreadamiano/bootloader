@@ -55,14 +55,13 @@ void processSupFrame(sup_frame_t* frame)
             break;
 
         case FW_STATE_READY:
-            //waiting for the firware size 
+            //waiting for the firware size (express as 2 bytes little endian)
             if (frame->payload_size == 0)
             {
                 fw_state = FW_STATE_ERROR; 
+                sup_send_nack(frame->id, (const uint8_t*)&fw_state); 
             }
-            char string [30]; 
-            sprintf(string, "%u", frame->payload_size); 
-            printString(string); 
+            
 
             break;
         
@@ -122,6 +121,7 @@ int main ()
             sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
             if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
             {
+                sup_send_ack(current_state->frame.id, NULL); 
                 processSupFrame(&current_state->frame); 
 
                 if (fw_state == FW_STATE_FINISHED)
