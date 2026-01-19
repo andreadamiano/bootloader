@@ -24,6 +24,10 @@ static uint16_t          fw_page_buffer_index = 0;
 
 static bool write_flash_page(const uint16_t page_addr, const uint8_t* page_data)
 {
+    //check page alignment 
+    if ((page_addr % SPM_PAGESIZE) != 0)
+        return false; 
+        
     return true; 
 }
 
