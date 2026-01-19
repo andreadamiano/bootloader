@@ -35,11 +35,11 @@ class SerialRepository:
             logger.error(f"An error occurred while reading sup frame: {e}")
             return None
 
-    def send_frame_and_wait_ack(self, frame: bytes) -> bool:
+    def send_frame_and_wait_ack(self, frame: bytes, timeout: int = 10) -> bool:
         for _ in range(settings.serial.MAX_RETRIES):
             ser.write(frame) 
-            sup_frame = self.read_sup_frame(time.time() + 10) #wait for 10 seconds the ack message
-            if sup_frame and sup_frame.frame_id == SupId.ACK:
+            sup_frame = self.read_sup_frame(time.time() + timeout) #wait for 10 seconds the ack message
+            if sup_frame and sup_frame.frame_id == SupId.ACK and sup_frame.payload[0] == frame[1]:
                 logger.info("Received ack message")
                 return True
             elif sup_frame and sup_frame.frame_id == SupId.NACK:
@@ -58,7 +58,7 @@ class SerialRepository:
 
         #send firware size
         firware_size = 128
-        frame = create_frame(SupId.DATA, firware_size.to_bytes(2, "little"))  
+        frame = create_frame(SupId.DATA, firware_size.to_bytes(2, "little"))  # send firmware size as 2 bytes in little indian format 
         self.send_frame_and_wait_ack(frame)
         self.listen()
 

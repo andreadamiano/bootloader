@@ -10,8 +10,22 @@
 #include <stdio.h>
 
 #define APP_START_ADDR (0x0000) 
+#define MAX_APPLICATION_SIZE (0x700)  //28 KB
+
+
 extern volatile uint32_t flag; 
 fw_parsing_state fw_state = FW_STATE_IDLE;
+static uint16_t          fw_expected_size  = 0;      
+static uint16_t          fw_received_bytes = 0;      
+static uint16_t          fw_write_address  = 0;      
+static uint8_t           fw_page_buffer[SPM_PAGESIZE]; 
+static uint16_t          fw_page_buffer_index = 0;     
+
+
+static bool write_flash_page(const uint16_t page_addr, const uint8_t* page_data)
+{
+    return true; 
+}
 
 
 static void __attribute__((noreturn)) jump_to_application(void)
@@ -62,8 +76,51 @@ void processSupFrame(sup_frame_t* frame)
                 sup_send_nack(frame->id, (const uint8_t*)&fw_state); 
             }
             
+            fw_expected_size = (uint16_t) frame->payload[0] | ((uint16_t) frame->payload[1] << 8); //big endian 
+            if ((fw_expected_size == 0 ) || (fw_expected_size > MAX_APPLICATION_SIZE))
+            {
+                sup_send_nack(frame->id, (const uint8_t*) &fw_state); 
+                fw_state = FW_STATE_ERROR; 
+                break;
+            }
 
+            //prepare firmware reception
+            fw_received_bytes    = 0;
+            fw_write_address     = APP_START_ADDR;
+            fw_page_buffer_index = 0;
+            memset(fw_page_buffer, 0xFF, sizeof(fw_page_buffer)); // Erased state
+
+            fw_state = FW_STATE_RECEIVING; 
+            sup_send_ack(frame->id, (const uint8_t*)&fw_state); 
             break;
+
+        case FW_STATE_RECEIVING:
+            //write firmware data payload to flash memory
+            for (uint8_t i = 0; i < MAX_APPLICATION_SIZE; ++i)
+            {
+                if (fw_received_bytes > fw_expected_size)
+                {
+                    fw_state = FW_STATE_ERROR; 
+                    sup_send_nack(frame->id, (const uint8_t*) &fw_state); 
+                    return;
+                }
+
+                //add byte to page buffer
+                fw_page_buffer[fw_page_buffer_index++] = frame->payload[i];
+                fw_received_bytes++;
+
+                //check if we filled page buffer or we uploaded all the firmware 
+                if (fw_page_buffer_index >= SPM_PAGESIZE || fw_received_bytes >= fw_expected_size)
+                {
+                    //write page buffer 
+                    if (!write_flash_page(fw_write_address, fw_page_buffer))
+                    {
+                        fw_state = FW_STATE_ERROR;
+                        sup_send_nack(frame->id, (const uint8_t*)&fw_state);
+                        return;
+                    }
+                }
+            }
         
         default:
             break;
@@ -121,7 +178,6 @@ int main ()
             sup_rx_frame_state_t* current_state = sup_get_rx_state(); 
             if ((current_state != NULL) && (current_state->parsing_result == SUP_RESULT_SUCCESS))
             {
-                sup_send_ack(current_state->frame.id, NULL); 
                 processSupFrame(&current_state->frame); 
 
                 if (fw_state == FW_STATE_FINISHED)
