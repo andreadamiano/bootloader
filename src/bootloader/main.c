@@ -201,6 +201,7 @@ void processSupFrame(sup_frame_t* frame)
 int main ()
 {
     uint8_t mcusr_val = MCUSR;
+    (void)mcusr_val;
     MCUSR = 0; //the MCU status register must be cleared otherwise the wdt cannot be disabled 
 
     wdt_disable(); 

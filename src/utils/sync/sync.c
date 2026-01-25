@@ -5,7 +5,6 @@
 #include <avr/eeprom.h>
 
 // volatile uint32_t flag __attribute__((section(".noinit")));
-// uint32_t EEMEM flag;
 
 void setFirmwareUpdateFlag(void)
 {
@@ -23,12 +22,7 @@ void switchToBootloader()
     char debug[30];
     sprintf(debug, "Flag set to: 0x%08lX\n", FW_UPDATE_REQUEST);
     printString(debug);
-
-    // char debug2[30] = "received boot signal\n";
-    // printString(debug2); 
-
-    _delay_ms(1000); 
-    wdt_enable(WDTO_250MS);
+    wdt_enable(WDTO_15MS);
     while (1)
     {
     
