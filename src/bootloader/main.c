@@ -99,8 +99,9 @@ void processSupFrame(sup_frame_t* frame)
             break;
 
         case FW_STATE_RECEIVING:
+
             //write firmware data payload to flash memory
-            for (uint8_t i = 0; i < MAX_APPLICATION_SIZE; ++i)
+            for (uint8_t i = 0; i < frame->payload_size ; ++i)
             {
                 if (fw_received_bytes > fw_expected_size)
                 {
@@ -123,8 +124,22 @@ void processSupFrame(sup_frame_t* frame)
                         sup_send_nack(frame->id, (const uint8_t*)&fw_state);
                         return;
                     }
+
+                    fw_write_address += SPM_PAGESIZE; 
+                    fw_page_buffer_index = 0; 
+                    memset(fw_page_buffer, 0xff, sizeof(fw_page_buffer)); 
                 }
             }
+
+            sup_send_ack(frame->id, (const uint8_t*)&fw_state ); 
+
+            //check if we finished to upload all the firmware 
+            if (fw_received_bytes == fw_expected_size)
+            {
+                fw_state = FW_STATE_FINISHED; 
+                sup_send_frame(SUP_ID_ACK, NULL, 0); 
+            }
+            break;
         
         default:
             break;
