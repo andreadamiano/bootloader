@@ -1,7 +1,11 @@
-text = "😊"
-bytes_obj = text.encode('utf-8')  # b'\xf0\x9f\x98\x8a'
-print(bytes_obj)      # b'\xf0\x9f\x98\x8a'
-print(bytes_obj[0])   # 240 (first byte: \xf0)
-print(bytes_obj[1])   # 159 (second byte: \x9f)
-print(bytes_obj[2])   # 152 (second byte: \x98)
-print(bytes_obj[3])   # 138 (third byte: \x8a)
+import os 
+
+with open("build/main_app.bin", "rb") as f:
+    data = f.read()
+    print("Hex dump:")
+    for i in range(0, len(data), 16):
+        chunk = data[i:i+16]
+        hex_str = ' '.join(f"{b:02x}" for b in chunk)
+        print(f"{i:08x}: {hex_str:<48}")
+
+    print(f"File size: {os.path.getsize("build/main_app.bin")}")

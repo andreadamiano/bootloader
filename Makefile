@@ -131,6 +131,9 @@ flash: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$(BOOTLOADER_TARGET).
 	-U flash:w:$(BUILD_DIR)/$(APPLICATION_TARGET).hex:i \
 	-U flash:w:$(BUILD_DIR)/$(BOOTLOADER_TARGET).hex:i
 
+application_binary:
+	$(OBJCOPY) -O binary $(BUILD_DIR)/$(APPLICATION_TARGET).elf $(BUILD_DIR)/$(APPLICATION_TARGET).bin
+
 program: flash    # Alias for flash - same functionality
 
 flash_eeprom: $(TARGET).eeprom    # Program EEPROM memory (persistent data storage)

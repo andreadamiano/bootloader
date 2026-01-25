@@ -8,9 +8,13 @@
 #include "utils/sync/sync.h"
 #include <string.h>
 #include <stdio.h>
+#include <avr/eeprom.h>
+#include <avr/boot.h>
 
 #define APP_START_ADDR (0x0000) 
 #define MAX_APPLICATION_SIZE (0x700)  //28 KB
+#define WORD_SIZE_BYTES (2U)  //a word correspond to 2 bytes 
+#define FLASH_EMPTY_WORD (0xFFFFU) 
 
 
 extern volatile uint32_t flag; 
@@ -27,6 +31,46 @@ static bool write_flash_page(const uint16_t page_addr, const uint8_t* page_data)
     //check page alignment 
     if ((page_addr % SPM_PAGESIZE) != 0)
         return false; 
+
+
+    //disable interrupts
+    const uint8_t sreg = SREG; 
+    cli(); 
+
+    //wait for any eeprom pending operations 
+    eeprom_busy_wait(); 
+
+    uint16_t word_data; 
+    uint8_t low_byte; 
+    uint8_t high_byte; 
+    for (int offset =0; offset < SPM_PAGESIZE; offset += WORD_SIZE_BYTES)
+    {
+        word_data = FLASH_EMPTY_WORD; 
+
+        if (page_data != NULL)
+        {
+            low_byte = page_data[offset]; 
+            high_byte = offset + 1 < MAX_APPLICATION_SIZE ? page_data[++offset] : 0xFF; 
+            word_data = ((uint16_t)high_byte << 8) | (uint16_t) low_byte;  
+        }
+
+        //load word into temporary flash buffer
+        boot_page_fill(page_addr+offset, word_data); 
+    }
+
+    //erase flash page 
+    boot_page_erase(page_addr);
+    boot_spm_busy_wait(); 
+    
+    //write page buffer to flash 
+    boot_page_write(page_addr);
+    boot_spm_busy_wait(); 
+
+    //re-enable read write section access
+    boot_rww_enable();
+
+    //restore interrupt state 
+    SREG = sreg; 
         
     return true; 
 }
@@ -81,6 +125,12 @@ void processSupFrame(sup_frame_t* frame)
             }
             
             fw_expected_size = (uint16_t) frame->payload[0] | ((uint16_t) frame->payload[1] << 8); //big endian 
+            
+            char debug [30];  
+            sprintf(debug, "boot size received %d", fw_expected_size); 
+            printString(debug); 
+
+
             if ((fw_expected_size == 0 ) || (fw_expected_size > MAX_APPLICATION_SIZE))
             {
                 sup_send_nack(frame->id, (const uint8_t*) &fw_state); 
