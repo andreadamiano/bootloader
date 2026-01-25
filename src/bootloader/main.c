@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <avr/eeprom.h>
 #include <avr/boot.h>
+#include <util/delay.h>
 
 #define APP_START_ADDR (0x0000) 
 #define MAX_APPLICATION_SIZE (0x700)  //28 KB
@@ -17,7 +18,8 @@
 #define FLASH_EMPTY_WORD (0xFFFFU) 
 
 
-extern volatile uint32_t flag; 
+// extern volatile uint32_t flag; 
+// extern uint32_t flag; 
 fw_parsing_state fw_state = FW_STATE_IDLE;
 static uint16_t          fw_expected_size  = 0;      
 static uint16_t          fw_received_bytes = 0;      
@@ -205,14 +207,11 @@ int main ()
     
     //initialize USART to send debug messages 
     initUSART();
-
-    if (mcusr_val & _BV(WDRF)) {
-        char debug[30] = "WDT reset detected\n";
-        printString(debug);
-    }
     
     char string[30] = "inside bootloader\n"; 
     printString(string); 
+
+    uint32_t flag_value = eeprom_read_dword((uint32_t*)FLAG_EEPROM_ADDR);
 
     //slow blink to signal entering the bootloader section
     DDRB |= 1; 
@@ -223,20 +222,21 @@ int main ()
     }
 
     char debug[50];
-    sprintf(debug, "Flag value: 0x%08lX\n", flag);
+    sprintf(debug, "Flag value: 0x%08lX\n", flag_value);
     printString(debug);
+    usart_flush(); 
 
-
-
-    if (flag == FW_UPDATE_REQUEST)
+    if (flag_value == FW_UPDATE_REQUEST)
     {
+        //reset flag 
+        eeprom_write_dword((uint32_t*)FLAG_EEPROM_ADDR, 0xFFFFFFFF);
+
         sup_rx_frame_state_t current_state; 
         sup_init(&current_state); 
         fw_state = FW_STATE_READY; 
         
         strcpy(string, "updating firmware"); 
         printString(string); 
-
 
         //start polling USART untill the firmware is updated 
         while (1)

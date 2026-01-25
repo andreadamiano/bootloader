@@ -4,6 +4,7 @@
 #include "USART.h"
 #include <util/setbaud.h>
 #include <stddef.h>
+#include <util/delay.h>
 
 
     void initUSART(void) 
@@ -52,6 +53,13 @@ void readString(char myString[], uint8_t maxLength)
         myString[i] = receiveByte();
     }
     
+}
+
+void usart_flush(void)
+{
+    while (!(UCSR0A & (1 << TXC0)));
+    UCSR0A |= (1 << TXC0);
+    _delay_ms(100); 
 }
 
 

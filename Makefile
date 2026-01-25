@@ -16,7 +16,8 @@ TARGET = main
 APPLICATION_TARGET = main_app
 BOOTLOADER_TARGET = main_boot
 BOOTLOADER_INIT = 0x7000
-APPLICATION_INIT = 0x800200
+APPLICATION_INIT = 0x800600
+# APPLICATION_INIT = 0x0200
 
 
 BOOTLOADER_SOURCES := $(shell find $(UTILS_DIR) -name '*.c') $(shell find $(BOOTLOADER_DIR) -name '*.c')
@@ -38,10 +39,8 @@ BUILD_DIR = build
 
 # BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=0x7800
 BOOTLOADER_LDFLAGS += $(LDFLAGS) -Wl,--section-start=.text=$(BOOTLOADER_INIT)
-BOOTLOADER_LDFLAGS += -Wl,--section-start=.noinit=$(APPLICATION_INIT)  #after the first 200 hex (since i dont't increase the heap is safe, if i would it would override this section
 BOOTLOADER_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(BOOTLOADER_TARGET).map # Generate memory map file showing memory layout
 APPLICATION_LDFLAGS = $(LDFLAGS)
-APPLICATION_LDFLAGS += -Wl,--section-start=.noinit=$(APPLICATION_INIT)
 APPLICATION_LDFLAGS += -Wl,-Map,$(BUILD_DIR)/$(APPLICATION_TARGET).map # Generate memory map file showing memory layout
 
 
@@ -226,4 +225,4 @@ release_h05:
 	sudo rfcomm release /dev/rfcomm0
 
 debug:
-	python3 debug.py
+	python3 -m web.scripts.debug.py

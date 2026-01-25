@@ -5,9 +5,11 @@
 #include <stdint.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+#include <avr/eeprom.h>
 
 
 #define FW_UPDATE_REQUEST (0xDEADBEEFUL)
+#define FLAG_EEPROM_ADDR 0
 
 
 typedef enum fw_parsing_state{
@@ -18,7 +20,8 @@ typedef enum fw_parsing_state{
     FW_STATE_ERROR      
 }fw_parsing_state; 
 
-extern volatile uint32_t flag;
+// extern volatile uint32_t flag;
+
 
 
 void setFirmwareUpdateFlag(); 

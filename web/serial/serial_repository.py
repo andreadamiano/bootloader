@@ -56,20 +56,20 @@ class SerialRepository:
         frame = create_frame(SupId.CMD_FW_UPDATE)
         self.send_frame_and_wait_ack(frame)
 
-        #send firware size
-        firware_size = 128
-        frame = create_frame(SupId.DATA, firware_size.to_bytes(2, "little"))  # send firmware size as 2 bytes in little indian format 
-        self.send_frame_and_wait_ack(frame)
-        ser.readline()
+        # #send firware size
+        # firware_size = 128
+        # frame = create_frame(SupId.DATA, firware_size.to_bytes(2, "little"))  # send firmware size as 2 bytes in little indian format 
+        # self.send_frame_and_wait_ack(frame)
+        # ser.readline()
 
-        #read firmware and send it via usart
-        with open("/build/main_app.bin", "rb") as f:
-            data = f.read()
-            data_lenght = len(data)
+        # #read firmware and send it via usart
+        # with open("/build/main_app.bin", "rb") as f:
+        #     data = f.read()
+        #     data_lenght = len(data)
 
-            for i in range(0, data_lenght, MAX_PAYLOAD_SIZE):
-                frame = create_frame(SupId.DATA, data[i:min(i+MAX_PAYLOAD_SIZE, data_lenght)]) #send bytes in little endian format 
-                self.send_frame_and_wait_ack(frame)
+        #     for i in range(0, data_lenght, MAX_PAYLOAD_SIZE):
+        #         frame = create_frame(SupId.DATA, data[i:min(i+MAX_PAYLOAD_SIZE, data_lenght)]) #send bytes in little endian format 
+        #         self.send_frame_and_wait_ack(frame)
 
         self.listen()
 
