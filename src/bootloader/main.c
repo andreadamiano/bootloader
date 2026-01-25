@@ -127,11 +127,6 @@ void processSupFrame(sup_frame_t* frame)
             }
             
             fw_expected_size = (uint16_t) frame->payload[0] | ((uint16_t) frame->payload[1] << 8); //big endian 
-            
-            char debug [30];  
-            sprintf(debug, "boot size received %d", fw_expected_size); 
-            printString(debug); 
-
 
             if ((fw_expected_size == 0 ) || (fw_expected_size > MAX_APPLICATION_SIZE))
             {
@@ -148,6 +143,10 @@ void processSupFrame(sup_frame_t* frame)
 
             fw_state = FW_STATE_RECEIVING; 
             sup_send_ack(frame->id, (const uint8_t*)&fw_state); 
+
+            char debug [30];  
+            sprintf(debug, "boot size received %d\n", fw_expected_size); 
+            printString(debug); 
             break;
 
         case FW_STATE_RECEIVING:
