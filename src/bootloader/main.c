@@ -13,7 +13,7 @@
 #include <util/delay.h>
 
 #define APP_START_ADDR (0x0000) 
-#define MAX_APPLICATION_SIZE (0x700)  //28 KB
+#define MAX_APPLICATION_SIZE (0xaaa) 
 #define WORD_SIZE_BYTES (2U)  //a word correspond to 2 bytes 
 #define FLASH_EMPTY_WORD (0xFFFFU) 
 
@@ -188,7 +188,8 @@ void processSupFrame(sup_frame_t* frame)
             if (fw_received_bytes == fw_expected_size)
             {
                 fw_state = FW_STATE_FINISHED; 
-                sup_send_frame(SUP_ID_ACK, NULL, 0); 
+                // sup_send_frame(SUP_ID_ACK, NULL, 0); 
+                sup_send_ack(frame->id, (const uint8_t*)&fw_state); 
             }
             break;
         

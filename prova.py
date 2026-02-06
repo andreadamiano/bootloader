@@ -2,6 +2,7 @@ import os
 
 with open("build/main_app.bin", "rb") as f:
     data = f.read()
+    print(f" Firware size: 0x{len(data):x}")
     print("Hex dump:")
     for i in range(0, len(data), 16):
         chunk = data[i:i+16]
