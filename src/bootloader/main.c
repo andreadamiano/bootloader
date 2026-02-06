@@ -13,7 +13,7 @@
 #include <util/delay.h>
 
 #define APP_START_ADDR (0x0000) 
-#define MAX_APPLICATION_SIZE (0xaaa) 
+#define MAX_APPLICATION_SIZE (0x6FFE) 
 #define WORD_SIZE_BYTES (2U)  //a word correspond to 2 bytes 
 #define FLASH_EMPTY_WORD (0xFFFFU) 
 
@@ -188,7 +188,6 @@ void processSupFrame(sup_frame_t* frame)
             if (fw_received_bytes == fw_expected_size)
             {
                 fw_state = FW_STATE_FINISHED; 
-                // sup_send_frame(SUP_ID_ACK, NULL, 0); 
                 sup_send_ack(frame->id, (const uint8_t*)&fw_state); 
             }
             break;
@@ -239,7 +238,7 @@ int main ()
         printString(debug); 
 
         //start polling USART untill the firmware is updated 
-        while (1)
+        while (true)
         {
             uint8_t byte = receiveByte(); 
             sup_handle_rx_byte(byte); 
@@ -258,10 +257,16 @@ int main ()
                     printString(debug); 
                 }
             }
+
+            // strcpy(debug, "still in loop\n"); 
+            // printString(debug); 
         }
     
         
     }
+    strcpy(debug, "jumping application\n"); 
+    printString(debug); 
+    usart_flush(); 
     jump_to_application(); 
     return 0; 
         
