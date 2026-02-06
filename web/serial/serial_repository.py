@@ -40,7 +40,7 @@ class SerialRepository:
             ser.write(frame) 
             sup_frame = self.read_sup_frame(time.time() + timeout) #wait for 10 seconds the ack message
             if sup_frame and sup_frame.frame_id == SupId.ACK and sup_frame.payload[0] == frame[1]:
-                logger.info("Received ack message")
+                logger.info(f"Received ack message for id 0x{frame[1]:x}")
                 return True
             elif sup_frame and sup_frame.frame_id == SupId.NACK:
                 logger.error("Receive nack message")

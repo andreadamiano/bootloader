@@ -203,7 +203,7 @@ clear_eeprom_save_fuse: fuses
 
 
 reset:
-	echo "send r" | avrdude -p m328p -c usbasp -t
+	avrdude -p m328p -c usbasp
 
 
 connect_h05:
