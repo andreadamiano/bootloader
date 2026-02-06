@@ -63,14 +63,6 @@ $(BUILD_DIR)/$(BOOTLOADER_TARGET).elf: $(BOOTLOADER_OBJECTS)
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
-# Merge both hex files into one for flashing
-$(BUILD_DIR)/combined.hex: $(BUILD_DIR)/$(APPLICATION_TARGET).hex $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex
-	@echo "Creating combined hex file..."
-	@srec_cat $(BUILD_DIR)/$(APPLICATION_TARGET).hex -Intel \
-	          $(BUILD_DIR)/$(BOOTLOADER_TARGET).hex -Intel \
-	          -o $(BUILD_DIR)/combined.hex -Intel
-	@echo "Combined hex file created: $(BUILD_DIR)/combined.hex"
-
 -include $(APPLICATION_DEPENDENCIES)
 -include $(BOOTLOADER_DEPENDENCIES)
 
