@@ -175,9 +175,9 @@ void processSupFrame(sup_frame_t* frame)
                         sup_send_nack(frame->id, (const uint8_t*)&fw_state);
                         return;
                     }
-
+                    
                     fw_write_address += SPM_PAGESIZE; 
-                    fw_page_buffer_index = 0; 
+                    fw_page_buffer_index = 0;  //reset page index 
                     memset(fw_page_buffer, 0xff, sizeof(fw_page_buffer)); 
                 }
             }

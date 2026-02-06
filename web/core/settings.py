@@ -8,12 +8,17 @@ class SerialSettings(BaseSettings):
     TIMEOUT: int = Field(alias="TIMEOUT")
 
     model_config = SettingsConfigDict(
-        env_file=".env"
+        env_file=".env", 
+        extra="ignore"
     )
 
 class Settings(BaseSettings):
+    DEBUG: bool = Field(alias="DEBUG") 
     serial: SerialSettings = SerialSettings()
 
-
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
 
 settings = Settings()
