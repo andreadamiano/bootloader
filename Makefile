@@ -173,6 +173,9 @@ fuses:     # DANGEROUS: Program fuse bytes - can brick your AVR if wrong!
 read_fuses:    # Safe: Read and display current fuse settings
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
 
+read_flash:
+	$(AVRDUDE) -c (PROGRAMMER_TYPE) -p $(MCU) -U flash:r:-:h
+
 write_fuses:
 	@echo "lfuse:"; \
 	read lfuse; \

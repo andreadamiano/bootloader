@@ -52,7 +52,7 @@ static bool write_flash_page(const uint16_t page_addr, const uint8_t* page_data)
         if (page_data != NULL)
         {
             low_byte = page_data[offset]; 
-            high_byte = offset + 1 < MAX_APPLICATION_SIZE ? page_data[++offset] : 0xFF; 
+            high_byte = offset + 1 < MAX_APPLICATION_SIZE ? page_data[offset + 1] : 0xFF; 
             word_data = ((uint16_t)high_byte << 8) | (uint16_t) low_byte;  
         }
 
@@ -257,9 +257,6 @@ int main ()
                     printString(debug); 
                 }
             }
-
-            // strcpy(debug, "still in loop\n"); 
-            // printString(debug); 
         }
     
         
