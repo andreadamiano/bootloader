@@ -208,8 +208,8 @@ int main ()
     //initialize USART to send debug messages 
     initUSART();
     
-    char string[30] = "inside bootloader\n"; 
-    printString(string); 
+    char debug[50] = "inside bootloader\n"; 
+    printString(debug); 
 
     uint32_t flag_value = eeprom_read_dword((uint32_t*)FLAG_EEPROM_ADDR);
 
@@ -221,7 +221,6 @@ int main ()
         _delay_ms(1000); 
     }
 
-    char debug[50];
     sprintf(debug, "Flag value: 0x%08lX\n", flag_value);
     printString(debug);
     usart_flush(); 
@@ -235,8 +234,8 @@ int main ()
         sup_init(&current_state); 
         fw_state = FW_STATE_READY; 
         
-        strcpy(string, "updating firmware"); 
-        printString(string); 
+        strcpy(debug, "updating firmware"); 
+        printString(debug); 
 
         //start polling USART untill the firmware is updated 
         while (1)
@@ -254,8 +253,8 @@ int main ()
 
                 if (fw_state == FW_STATE_ERROR)
                 {
-                    strcpy(string, "error fw retrieve"); //debug message
-                    printString(string); 
+                    strcpy(debug, "error fw retrieve"); //debug message
+                    printString(debug); 
                 }
             }
         }
